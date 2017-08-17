@@ -7,7 +7,7 @@ class Cpu() {
     variable Integer pc = 0; // TODO: what is intial value of PC?
     // TODO: delay timer
     // TODO: sound timer
-    // TODO: Random rand = Random()
+    Random rand = Random();
 
     [Integer, Integer, Integer, Integer] splitWordToNibbles(Integer word) {
         return [
@@ -16,10 +16,6 @@ class Cpu() {
             word.rightLogicalShift(4).and(#f),
             word.and(#f)
         ];
-    }
-
-    Integer nibblesToWord3(Integer n0, Integer n1, Integer n2) {
-        return n0.leftLogicalShift(8).and(#f00).or(n1.leftLogicalShift(4).and(#f0)).or(n2.and(#f));
     }
 
     Integer lreg(Integer index) {
@@ -129,7 +125,7 @@ class Cpu() {
             pc = lreg(0) + opcode.and(#0fff);
         }
         else if (opcode.and(#f000) == #c) {
-            sreg(n1, rand.next().and(opcode.and(#00ff)));
+            sreg(n1, rand.nextInt(#100).and(opcode.and(#00ff)));
         }
         else if (opcode.and(#f000) == #d) {
             // draws a sprite at (reg[n1], reg[n2]) with width of 8px, height of (n3)px
