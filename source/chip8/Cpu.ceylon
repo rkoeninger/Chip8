@@ -101,7 +101,6 @@ class Cpu() {
             pc = pop();
         }
         else if (n0 == 0) {
-            // call RCA 1802 program at address n1n2n3
             throw Exception("RCA 1802 programs not supported");
         }
         else if (n0 == 1) {
@@ -158,7 +157,7 @@ class Cpu() {
             else if (n3 == #e) {
                 value original = lreg(n1);
                 sreg(n1, original.leftLogicalShift(1).and(#ff));
-                sreg(#f, original.rightLogicalShift(7).and(#1));
+                sreg(#f, original.rightLogicalShift(7).and(#01));
             }
             else {
                 throw Exception("Invalid opcode");
@@ -167,22 +166,30 @@ class Cpu() {
         else if (opcode.and(#f00f) == #9000 && lreg(n1) != lreg(n2)) {
             pc += 2;
         }
-        else if (opcode.and(#f000) == #a) {
+        else if (n0 == #a) {
             addr = opcode.and(#0fff);
         }
-        else if (opcode.and(#f000) == #b) {
+        else if (n0 == #b) {
             pc = lreg(0) + opcode.and(#0fff);
         }
-        else if (opcode.and(#f000) == #c) {
+        else if (n0 == #c) {
             sreg(n1, rand.nextInt(#100).and(opcode.and(#00ff)));
         }
-        else if (opcode.and(#f000) == #d) {
-            // TODO: implement sprite rendering
-            // draws a sprite at (reg[n1], reg[n2]) with width of 8px, height of (n3)px
-            // sprite is read from memory starting at addr
-            // addr is left unchanged
-            // reg[f] is set to 1 if any pixels are flipped from set to unset
-            //           set to 0 if that doesn't happen
+        else if (n0 == #d) {
+            value x = lreg(n1);
+            value y = lreg(n2);
+            value h = lreg(n3);
+            variable Boolean unset = false;
+            for (dy in 0:h) {
+                value line = lmem(addr + dy);
+                
+                for (dx in 0:8) {
+                    if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
+                        unset ||= screen.drawPixel(x + dx, y + dy);
+                    }
+                }
+            }
+            sreg(#f, if (unset) then 1 else 0);
         }
         else if (opcode.and(#f0ff) == #e09e && input.isKeyPressed(n1)) {
             pc += 2;
