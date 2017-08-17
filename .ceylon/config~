@@ -2,7 +2,6 @@
 [compiler]
 source=source
 resource=resource
-source=source
 
 [defaults]
 offline=false

@@ -1,3 +1,5 @@
+import java.util { Random }
+
 class Cpu() {
     Array<Integer> regs = Array.ofSize(16, 0);
     variable Integer addr = 0; // TODO: what is initial value of I?
@@ -5,6 +7,7 @@ class Cpu() {
     variable Integer pc = 0; // TODO: what is intial value of PC?
     // TODO: delay timer
     // TODO: sound timer
+    // TODO: Random rand = Random()
 
     [Integer, Integer, Integer, Integer] splitWordToNibbles(Integer word) {
         return [
@@ -116,68 +119,66 @@ class Cpu() {
                 throw Exception("Invalid opcode");
             }
         }
-        else if (n0 == 9 && n3 == 0) {
+        else if (opcode.and(#f00f) == #9000) {
             // skips next instruction if reg[n1] != reg[n2]
         }
-        else if (n0 == #a) {
-            // sets addr to n1n2n3
-            addr = nibblesToWord3(n1, n2, n3);
+        else if (opcode.and(#f000) == #a) {
+            addr = opcode.and(#0fff);
         }
-        else if (n0 == #b) {
-            // set PC to reg[0] + n1n2n3
-            pc = lreg(0) + nibblesToWord3(n1, n2, n3);
+        else if (opcode.and(#f000) == #b) {
+            pc = lreg(0) + opcode.and(#0fff);
         }
-        else if (n0 == #c) {
-            // set reg[n1] to rand() & n2n3
+        else if (opcode.and(#f000) == #c) {
+            sreg(n1, rand.next().and(opcode.and(#00ff)));
         }
-        else if (n0 == #d) {
+        else if (opcode.and(#f000) == #d) {
             // draws a sprite at (reg[n1], reg[n2]) with width of 8px, height of (n3)px
             // sprite is read from memory starting at addr
             // addr is left unchanged
             // reg[f] is set to 1 if any pixels are flipped from set to unset
             //           set to 0 if that doesn't happen
         }
-        else if (n0 == #e && n2 == 9 && n3 == #e) {
+        else if (opcode.and(#f0ff) == #e09e) {
             // skips next instruction if key stored in reg[n1] is pressed
         }
-        else if (n0 == #e && n2 == #a && n3 == 1) {
+        else if (opcode.and(#f0ff) == #e0a1) {
             // skips next instruction if key stored in reg[n1] is not pressed
         }
-        else if (n0 == #f && n2 == 0 && n3 == 7) {
+        else if (opcode.and(#f0ff) == #f007) {
             // sets reg[n1] to the value of the delay timer
         }
-        else if (n0 == #f && n2 == 0 && n3 == #a) {
+        else if (opcode.and(#f0ff) == #f00a) {
             // waits for a key press and then stores it in reg[n1]
         }
-        else if (n0 == #f && n2 == 1 && n3 == 5) {
+        else if (opcode.and(#f0ff) == #f015) {
             // sets delay timer to reg[n1]
         }
-        else if (n0 == #f && n2 == 1 && n3 == 8) {
+        else if (opcode.and(#f0ff) == #f018) {
             // sets sound timer to reg[n1]
         }
-        else if (n0 == #f && n2 == 1 && n3 == #e) {
+        else if (opcode.and(#f0ff) == #f01e) {
             // increases addr by reg[n1]
         }
-        else if (n0 == #f && n2 == 2 && n3 == 9) {
+        else if (opcode.and(#f0ff) == #f029) {
             // sets addr to the location of the sprite for the
             // character in reg[n1]
             // characters 0-F are represented in a 4x5 font
         }
-        else if (n0 == #f && n2 == 3 && n3 == 3) {
+        else if (opcode.and(#f0ff) == #f033) {
             // stores the BCD representaion of reg[n1] at addr, addr+1, addr+2
             // unsigned value of reg[n1]:
             // hundreds place at addr
             // tens place at addr+1
             // ones place at addr
         }
-        else if (n0 == #f && n2 == 5 && n3 == 5) {
+        else if (opcode.and(#f0ff) == #f055) {
             // stores reg[0] thru reg[n1] (inclusive)
             // starting at addr
-            for (i in 0..n1) {
+            for (i in 0..(opcode.rightLogicalShift(8).and(#f))) {
                 smem(addr + i, lreg(i));
             }
         }
-        else if (n0 == #f && n2 == 6 && n3 == 5) {
+        else if (opcode.and(#f0ff) == #f065) {
             // fills reg[0] thru reg[n1] (inclusive)
             // starting at addr
             for (i in 0..n1) {
