@@ -1,14 +1,14 @@
 import java.util { Random }
 
 class Cpu() {
-    Array<Integer> regs = Array.ofSize(16, 0);
-    Array<Integer> mem = Array.ofSize(4k, 0);
-    Array<Integer> stack = Array.ofSize(16, 0);
+    Array<Integer> regs = Array.ofSize(#10, 0);
+    Array<Integer> mem = Array.ofSize(#1000, 0);
+    Array<Integer> stack = Array.ofSize(#10, 0);
+    variable Integer pc = #200;
+    variable Integer addr = 0;
     variable Integer pointer = 0;
-    variable Integer addr = 0; // TODO: what is initial value of I?
     variable Integer delay = 0;
     variable Integer sound = 0;
-    variable Integer pc = 0; // TODO: what is intial value of PC?
     Random rand = Random();
     shared ScreenBuffer screen = ScreenBuffer();
     shared InputController input = InputController();
@@ -29,9 +29,10 @@ class Cpu() {
         throw Exception();
     }
 
-    Integer sreg(Integer index, Integer x) {
+    void sreg(Integer index, Integer x) {
         if (exists _ = regs[index]) {
             regs[index] = x;
+            return;
         }
         throw Exception();
     }
@@ -43,30 +44,74 @@ class Cpu() {
         throw Exception();
     }
 
-    Integer smem(Integer index, Integer x) {
+    void smem(Integer index, Integer x) {
         if (exists _ = mem[index]) {
             mem[index] = x;
+            return;
         }
         throw Exception();
     }
 
-    void run(Integer opcode) {
+    void push(Integer x) {
+        if (exists _ = stack[pointer]) {
+            stack[pointer] = x;
+            pointer++;
+            return;
+        }
+        throw Exception();
+    }
+
+    Integer pop() {
+        if (exists x = stack[pointer - 1]) {
+            pointer--;
+            return x;
+        }
+        throw Exception();
+    }
+
+    void cycle() {
+        value opcode = lmem(pc).leftLogicalShift(8).and(lmem(pc + 1));
+
+        if (execute(opcode)) {
+            pc += 2;
+        }
+
+        if (delay > 0) {
+            delay--;
+        }
+
+        if (sound > 0) {
+            if (sound == 1) {
+                // TODO: beep!
+                print("beep!");
+            }
+
+            sound--;
+        }
+    }
+
+    Boolean execute(Integer opcode) {
+        variable Boolean increment = true;
         value [n0, n1, n2, n3] = splitWordToNibbles(opcode);
 
         if (opcode == #00e0) {
             screen.clear();
         }
         else if (opcode == #00ee) {
-            // return from a subroutine
+            pc = pop();
         }
         else if (n0 == 0) {
             // call RCA 1802 program at address n1n2n3
+            throw Exception("RCA 1802 programs not supported");
         }
         else if (n0 == 1) {
-            // jump to address n1n2n3
+            pc = opcode.and(#0fff);
+            increment = false;
         }
         else if (n0 == 2) {
-            // call subroutine at n1n2n3
+            push(pc);
+            pc = opcode.and(#0fff);
+            increment = false;
         }
         else if (n0 == 3 && lreg(n1) == opcode.and(#00ff)) {
             pc += 2;
@@ -132,6 +177,7 @@ class Cpu() {
             sreg(n1, rand.nextInt(#100).and(opcode.and(#00ff)));
         }
         else if (opcode.and(#f000) == #d) {
+            // TODO: implement sprite rendering
             // draws a sprite at (reg[n1], reg[n2]) with width of 8px, height of (n3)px
             // sprite is read from memory starting at addr
             // addr is left unchanged
@@ -160,6 +206,8 @@ class Cpu() {
             addr += lreg(n1);
         }
         else if (opcode.and(#f0ff) == #f029) {
+            // TODO: implement font lookup
+            // TODO: add font table
             // sets addr to the location of the sprite for the
             // character in reg[n1]
             // characters 0-F are represented in a 4x5 font
@@ -171,7 +219,7 @@ class Cpu() {
             smem(addr + 2, x % 10);
         }
         else if (opcode.and(#f0ff) == #f055) {
-            for (i in 0..(opcode.rightLogicalShift(8).and(#f))) {
+            for (i in 0..n1) {
                 smem(addr + i, lreg(i));
             }
         }
@@ -183,5 +231,7 @@ class Cpu() {
         else {
             throw Exception("Invalid opcode");
         }
+
+        return increment;
     }
 }
