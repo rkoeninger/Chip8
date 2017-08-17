@@ -1,4 +1,10 @@
 target/
+classes/
+.exploded/
 *.iws
+config.old
+modules/
 .idea/workspace.xml
 .idea/vcs.xml
+.idea/libraries/
+.idea/shelf
