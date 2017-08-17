@@ -2,12 +2,16 @@ import java.util { Random }
 
 class Cpu() {
     Array<Integer> regs = Array.ofSize(16, 0);
-    variable Integer addr = 0; // TODO: what is initial value of I?
     Array<Integer> mem = Array.ofSize(4k, 0);
+    Array<Integer> stack = Array.ofSize(16, 0);
+    variable Integer pointer = 0;
+    variable Integer addr = 0; // TODO: what is initial value of I?
+    variable Integer delay = 0;
+    variable Integer sound = 0;
     variable Integer pc = 0; // TODO: what is intial value of PC?
-    // TODO: delay timer
-    // TODO: sound timer
     Random rand = Random();
+    shared ScreenBuffer screen = ScreenBuffer();
+    shared InputController input = InputController();
 
     [Integer, Integer, Integer, Integer] splitWordToNibbles(Integer word) {
         return [
@@ -50,7 +54,7 @@ class Cpu() {
         value [n0, n1, n2, n3] = splitWordToNibbles(opcode);
 
         if (opcode == #00e0) {
-            // clear the screen
+            screen.clear();
         }
         else if (opcode == #00ee) {
             // return from a subroutine
@@ -64,14 +68,14 @@ class Cpu() {
         else if (n0 == 2) {
             // call subroutine at n1n2n3
         }
-        else if (n0 == 3) {
-            // skip next instruction if registers[n1] == n2n3
+        else if (n0 == 3 && lreg(n1) == opcode.and(#00ff)) {
+            pc += 2;
         }
-        else if (n0 == 4) {
-            // skip next instruction if registers[n1] != n2n3
+        else if (n0 == 4 && lreg(n1) != opcode.and(#00ff)) {
+            pc += 2;
         }
         else if (n0 == 5 && lreg(n1) == lreg(n2)) {
-            // skip next instruction if registers[n1] == registers[n2]
+            pc += 2;
         }
         else if (n0 == 8) {
             if (n3 == 0) {
@@ -115,8 +119,8 @@ class Cpu() {
                 throw Exception("Invalid opcode");
             }
         }
-        else if (opcode.and(#f00f) == #9000) {
-            // skips next instruction if reg[n1] != reg[n2]
+        else if (opcode.and(#f00f) == #9000 && lreg(n1) != lreg(n2)) {
+            pc += 2;
         }
         else if (opcode.and(#f000) == #a) {
             addr = opcode.and(#0fff);
@@ -134,26 +138,26 @@ class Cpu() {
             // reg[f] is set to 1 if any pixels are flipped from set to unset
             //           set to 0 if that doesn't happen
         }
-        else if (opcode.and(#f0ff) == #e09e) {
-            // skips next instruction if key stored in reg[n1] is pressed
+        else if (opcode.and(#f0ff) == #e09e && input.isKeyPressed(n1)) {
+            pc += 2;
         }
-        else if (opcode.and(#f0ff) == #e0a1) {
-            // skips next instruction if key stored in reg[n1] is not pressed
+        else if (opcode.and(#f0ff) == #e0a1 && !input.isKeyPressed(n1)) {
+            pc += 2;
         }
         else if (opcode.and(#f0ff) == #f007) {
-            // sets reg[n1] to the value of the delay timer
+            sreg(n1, delay);
         }
         else if (opcode.and(#f0ff) == #f00a) {
-            // waits for a key press and then stores it in reg[n1]
+            sreg(n1, input.waitForKeyPressed());
         }
         else if (opcode.and(#f0ff) == #f015) {
-            // sets delay timer to reg[n1]
+            delay = lreg(n1);
         }
         else if (opcode.and(#f0ff) == #f018) {
-            // sets sound timer to reg[n1]
+            sound = lreg(n1);
         }
         else if (opcode.and(#f0ff) == #f01e) {
-            // increases addr by reg[n1]
+            addr += lreg(n1);
         }
         else if (opcode.and(#f0ff) == #f029) {
             // sets addr to the location of the sprite for the
@@ -161,22 +165,17 @@ class Cpu() {
             // characters 0-F are represented in a 4x5 font
         }
         else if (opcode.and(#f0ff) == #f033) {
-            // stores the BCD representaion of reg[n1] at addr, addr+1, addr+2
-            // unsigned value of reg[n1]:
-            // hundreds place at addr
-            // tens place at addr+1
-            // ones place at addr
+            value x = lreg(n1);
+            smem(addr, x / 100 % 10);
+            smem(addr + 1, x / 10 % 10);
+            smem(addr + 2, x % 10);
         }
         else if (opcode.and(#f0ff) == #f055) {
-            // stores reg[0] thru reg[n1] (inclusive)
-            // starting at addr
             for (i in 0..(opcode.rightLogicalShift(8).and(#f))) {
                 smem(addr + i, lreg(i));
             }
         }
         else if (opcode.and(#f0ff) == #f065) {
-            // fills reg[0] thru reg[n1] (inclusive)
-            // starting at addr
             for (i in 0..n1) {
                 sreg(i, lmem(addr + i));
             }
