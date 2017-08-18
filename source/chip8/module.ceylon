@@ -1,4 +1,3 @@
-"CHIP-8 Emulator"
 native ("jvm")
 module chip8 "0.0.1" {
 	import java.base "8";
