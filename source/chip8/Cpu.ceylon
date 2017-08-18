@@ -11,7 +11,9 @@ class Cpu() {
     variable Integer sound = 0;
     Random rand = Random();
     shared ScreenBuffer screen = ScreenBuffer();
+    shared SoundCard speaker = SoundCard();
     shared InputController input = InputController();
+    value glyphWidth = 5;
 
     [Integer, Integer, Integer, Integer] splitWordToNibbles(Integer word) {
         return [
@@ -181,8 +183,7 @@ class Cpu() {
 
         if (sound > 0) {
             if (sound == 1) {
-                // TODO: beep!
-                print("beep!");
+                speaker.beep();
             }
 
             sound--;
@@ -312,11 +313,7 @@ class Cpu() {
             addr += lreg(n1);
         }
         else if (opcode.and(#f0ff) == #f029) {
-            // TODO: implement font lookup
-            // TODO: add font table
-            // sets addr to the location of the sprite for the
-            // character in reg[n1]
-            // characters 0-F are represented in a 4x5 font
+            addr = lreg(n1) * glyphWidth;
         }
         else if (opcode.and(#f0ff) == #f033) {
             value x = lreg(n1);
