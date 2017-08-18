@@ -1,4 +1,3 @@
-// TODO: implement
 class InputController() {
     Array<Boolean> state = Array.ofSize(#1, false);
 
@@ -10,4 +9,9 @@ class InputController() {
     }
 
     shared Integer waitForKeyPressed() => 0;
+
+    shared void setKeyPressed(Integer x, Boolean pressed) {
+        // TODO: set/clear value in state array
+        // TODO: trip a switch that waitForKeyPressed() could be waiting on
+    }
 }

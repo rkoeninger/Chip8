@@ -13,11 +13,19 @@ class ScreenBuffer() {
      * Flips pixel at (x, y).
      * Returns true if pixel was unset by this operation.
      */
-    shared Boolean drawPixel(Integer x, Integer y) {
+    shared Boolean flipPixel(Integer x, Integer y) {
         value index = y * width + x;
         if (exists original = buffer[index]) {
             buffer[index] = !original;
             return original;
+        }
+        throw Exception();
+    }
+
+    shared Boolean getPixel(Integer x, Integer y) {
+        value index = y * width + x;
+        if (exists p = buffer[index]) {
+            return p;
         }
         throw Exception();
     }

@@ -1,6 +1,6 @@
 import java.util { Random }
 
-class Cpu() {
+class Machine() {
     Array<Integer> regs = Array.ofSize(#10, 0);
     Array<Integer> mem = Array.ofSize(#1000, 0);
     Array<Integer> stack = Array.ofSize(#10, 0);
@@ -71,7 +71,7 @@ class Cpu() {
         throw Exception();
     }
 
-    void init() {
+    shared void init() {
         // 0
         smem(0, #f0);
         smem(1, #90);
@@ -170,7 +170,11 @@ class Cpu() {
         smem(79, #80);
     }
 
-    void cycle() {
+    shared void load(Array<Integer> rom) {
+
+    }
+
+    shared void cycle() {
         value opcode = lmem(pc).leftLogicalShift(8).and(lmem(pc + 1));
 
         if (execute(opcode)) {
@@ -285,7 +289,7 @@ class Cpu() {
                 
                 for (dx in 0:8) {
                     if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
-                        unset ||= screen.drawPixel(x + dx, y + dy);
+                        unset ||= screen.flipPixel(x + dx, y + dy);
                     }
                 }
             }
