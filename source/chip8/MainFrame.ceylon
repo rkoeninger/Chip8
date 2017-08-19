@@ -3,7 +3,7 @@ import java.awt.event { ActionEvent }
 import java.util { Random }
 import javax.swing { JFrame, JMenu, JMenuBar, JMenuItem, JPanel, UIManager }
 
-class Main {
+class MainFrame {
     shared static Integer scale = 4;
     shared static void render(Machine machine, JPanel panel) {
         value g = panel.graphics;
@@ -45,7 +45,7 @@ shared void main() {
     menuBar.add(fileMenu);
     menuBar.add(displayMenu);
     value panel = JPanel();
-    panel.setSize(width * Main.scale, height * Main.scale);
+    panel.setSize(width * MainFrame.scale, height * MainFrame.scale);
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);
@@ -59,7 +59,7 @@ shared void main() {
     frame.setVisible(true);
 
     renderMenuItem.addActionListener((ActionEvent e) {
-        Main.render(machine, panel);
+        MainFrame.render(machine, panel);
     });
-    Main.render(machine, panel);
+    MainFrame.render(machine, panel);
 }
