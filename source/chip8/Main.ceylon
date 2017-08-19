@@ -1,5 +1,6 @@
 import java.awt { Color }
 import java.awt.event { ActionEvent }
+import java.util { Random }
 import javax.swing { JFrame, JMenu, JMenuBar, JMenuItem, JPanel, UIManager }
 
 class Main {
@@ -11,8 +12,8 @@ class Main {
         g.fillRect(0, 0, panel.width, panel.height);
 
         g.color = Color.\iGREEN;
-        for (x in 0:machine.width) {
-            for (y in 0:machine.height) {
+        for (x in 0:width) {
+            for (y in 0:height) {
                 if (machine.getPixel(x, y)) {
                     g.fillRect(x * scale, y * scale, scale, scale);
                 }
@@ -23,10 +24,10 @@ class Main {
 }
 
 class ActualPeripherals() satisfies Peripherals {
-    shared actual void beep() {
-        print("beep!");
-    }
+    Random r = Random();
+    shared actual void beep() => print("beep!");
     shared actual Integer waitForKeyPressed() => 0;
+    shared actual Integer rand() => r.nextInt(#100);
 }
 
 shared void main() {
@@ -44,9 +45,7 @@ shared void main() {
     menuBar.add(fileMenu);
     menuBar.add(displayMenu);
     value panel = JPanel();
-    panel.setSize(
-        machine.width * Main.scale,
-        machine.height * Main.scale);
+    panel.setSize(width * Main.scale, height * Main.scale);
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);

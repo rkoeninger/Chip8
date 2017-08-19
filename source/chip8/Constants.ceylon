@@ -1,5 +1,6 @@
+Integer width = 64;
+Integer height = 32;
 Integer glyphWidth = 5;
-
 Integer[] glyphs = [
     // 0
     $1111,
