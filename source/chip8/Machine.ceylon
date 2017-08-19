@@ -1,28 +1,19 @@
 import java.util { Random }
 
-class Machine() {
+class Machine(Peripherals peripherals) {
+    shared Integer width = 64;
+    shared Integer height = 32;
     Array<Integer> regs = Array.ofSize(#10, 0);
     Array<Integer> mem = Array.ofSize(#1000, 0);
     Array<Integer> stack = Array.ofSize(#10, 0);
+    shared Array<Boolean> buffer = Array.ofSize(width * height, false);
+    Array<Boolean> keys = Array.ofSize(#1, false);
     variable Integer pc = #200;
     variable Integer addr = 0;
     variable Integer pointer = 0;
     variable Integer delay = 0;
     variable Integer sound = 0;
     Random rand = Random();
-    shared ScreenBuffer screen = ScreenBuffer();
-    shared SoundCard speaker = SoundCard();
-    shared InputController input = InputController();
-    value glyphWidth = 5;
-
-    [Integer, Integer, Integer, Integer] splitWordToNibbles(Integer word) {
-        return [
-            word.rightLogicalShift(12).and(#f),
-            word.rightLogicalShift(8).and(#f),
-            word.rightLogicalShift(4).and(#f),
-            word.and(#f)
-        ];
-    }
 
     Integer lreg(Integer index) {
         if (exists x = regs[index]) {
@@ -71,107 +62,61 @@ class Machine() {
         throw Exception();
     }
 
+    Boolean isKeyPressed(Integer x) {
+        if (exists s = keys[x]) {
+            return s;
+        }
+        throw Exception();
+    }
+
+    shared void setKeyPressed(Integer x, Boolean pressed) {
+        // TODO: set/clear value in state array
+        // TODO: trip a switch that waitForKeyPressed() could be waiting on
+    }
+
+    void clear() {
+        for (index in 0:buffer.size) {
+            buffer[index] = false;
+        }
+    }
+
+    /*
+     * Flips pixel at (x, y).
+     * Returns true if pixel was unset by this operation.
+     */
+    Boolean flipPixel(Integer x, Integer y) {
+        value index = y * width + x;
+        if (exists original = buffer[index]) {
+            buffer[index] = !original;
+            return original;
+        }
+        throw Exception();
+    }
+
+    shared Boolean getPixel(Integer x, Integer y) {
+        value index = y * width + x;
+        if (exists p = buffer[index]) {
+            return p;
+        }
+        throw Exception();
+    }
+
     shared void init() {
-        // 0
-        smem(0, #f0);
-        smem(1, #90);
-        smem(2, #90);
-        smem(3, #90);
-        smem(4, #f0);
-        // 1
-        smem(5, #20);
-        smem(6, #60);
-        smem(7, #20);
-        smem(8, #20);
-        smem(9, #70);
-        // 2
-        smem(10, #f0);
-        smem(11, #10);
-        smem(12, #f0);
-        smem(13, #80);
-        smem(14, #f0);
-        // 3
-        smem(15, #f0);
-        smem(16, #10);
-        smem(17, #f0);
-        smem(18, #10);
-        smem(19, #f0);
-        // 4
-        smem(20, #90);
-        smem(21, #90);
-        smem(22, #f0);
-        smem(23, #10);
-        smem(24, #10);
-        // 5
-        smem(25, #f0);
-        smem(26, #80);
-        smem(27, #f0);
-        smem(28, #10);
-        smem(29, #f0);
-        // 6
-        smem(30, #f0);
-        smem(31, #80);
-        smem(32, #f0);
-        smem(33, #90);
-        smem(34, #f0);
-        // 7
-        smem(35, #f0);
-        smem(36, #10);
-        smem(37, #20);
-        smem(38, #40);
-        smem(39, #40);
-        // 8
-        smem(40, #f0);
-        smem(41, #90);
-        smem(42, #f0);
-        smem(43, #90);
-        smem(44, #f0);
-        // 9
-        smem(45, #f0);
-        smem(46, #90);
-        smem(47, #f0);
-        smem(48, #10);
-        smem(49, #f0);
-        // A
-        smem(50, #f0);
-        smem(51, #90);
-        smem(52, #f0);
-        smem(53, #90);
-        smem(54, #90);
-        // B
-        smem(55, #e0);
-        smem(56, #90);
-        smem(57, #e0);
-        smem(58, #90);
-        smem(59, #e0);
-        // C
-        smem(60, #f0);
-        smem(61, #80);
-        smem(62, #80);
-        smem(63, #80);
-        smem(64, #f0);
-        // D
-        smem(65, #e0);
-        smem(66, #90);
-        smem(67, #90);
-        smem(68, #90);
-        smem(69, #e0);
-        // E
-        smem(70, #f0);
-        smem(71, #80);
-        smem(72, #f0);
-        smem(73, #80);
-        smem(74, #f0);
-        // F
-        smem(75, #f0);
-        smem(76, #80);
-        smem(77, #f0);
-        smem(78, #80);
-        smem(79, #80);
+        variable Integer i = 0;
+
+        for (b in glyphs) {
+            smem(i, b.leftLogicalShift(4));
+            i++;
+        }
     }
 
     shared void load(Array<Integer> rom) {
+        variable Integer i = #200;
 
+        for (b in rom) {
+            smem(i, b);
+            i++;
+        }
     }
 
     shared void cycle() {
@@ -187,7 +132,7 @@ class Machine() {
 
         if (sound > 0) {
             if (sound == 1) {
-                speaker.beep();
+                peripherals.beep();
             }
 
             sound--;
@@ -196,10 +141,13 @@ class Machine() {
 
     Boolean execute(Integer opcode) {
         variable Boolean increment = true;
-        value [n0, n1, n2, n3] = splitWordToNibbles(opcode);
+        value n0 = opcode.rightLogicalShift(12).and(#f);
+        value n1 = opcode.rightLogicalShift(8).and(#f);
+        value n2 = opcode.rightLogicalShift(4).and(#f);
+        value n3 = opcode.and(#f);
 
         if (opcode == #00e0) {
-            screen.clear();
+            clear();
         }
         else if (opcode == #00ee) {
             pc = pop();
@@ -286,26 +234,26 @@ class Machine() {
             variable Boolean unset = false;
             for (dy in 0:h) {
                 value line = lmem(addr + dy);
-                
+
                 for (dx in 0:8) {
                     if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
-                        unset ||= screen.flipPixel(x + dx, y + dy);
+                        unset ||= flipPixel(x + dx, y + dy);
                     }
                 }
             }
             sreg(#f, if (unset) then 1 else 0);
         }
-        else if (opcode.and(#f0ff) == #e09e && input.isKeyPressed(n1)) {
+        else if (opcode.and(#f0ff) == #e09e && isKeyPressed(n1)) {
             pc += 2;
         }
-        else if (opcode.and(#f0ff) == #e0a1 && !input.isKeyPressed(n1)) {
+        else if (opcode.and(#f0ff) == #e0a1 && !isKeyPressed(n1)) {
             pc += 2;
         }
         else if (opcode.and(#f0ff) == #f007) {
             sreg(n1, delay);
         }
         else if (opcode.and(#f0ff) == #f00a) {
-            sreg(n1, input.waitForKeyPressed());
+            sreg(n1, peripherals.waitForKeyPressed());
         }
         else if (opcode.and(#f0ff) == #f015) {
             delay = lreg(n1);

@@ -4,16 +4,16 @@ import javax.swing { JFrame, JMenu, JMenuBar, JMenuItem, JPanel, UIManager }
 
 class Main {
     shared static Integer scale = 4;
-    shared static void render(ScreenBuffer screen, JPanel panel) {
+    shared static void render(Machine machine, JPanel panel) {
         value g = panel.graphics;
 
         g.color = Color.\iBLACK;
         g.fillRect(0, 0, panel.width, panel.height);
 
         g.color = Color.\iGREEN;
-        for (x in 0:screen.width) {
-            for (y in 0:screen.height) {
-                if (screen.getPixel(x, y)) {
+        for (x in 0:machine.width) {
+            for (y in 0:machine.height) {
+                if (machine.getPixel(x, y)) {
                     g.fillRect(x * scale, y * scale, scale, scale);
                 }
             }
@@ -22,8 +22,15 @@ class Main {
     new create() {} // TODO: no better way to do this?
 }
 
+class ActualPeripherals() satisfies Peripherals {
+    shared actual void beep() {
+        print("beep!");
+    }
+    shared actual Integer waitForKeyPressed() => 0;
+}
+
 shared void main() {
-    value processor = Machine();
+    value machine = Machine(ActualPeripherals());
 
     // TODO: configurable key maps
     // TODO: per-rom key maps
@@ -38,8 +45,8 @@ shared void main() {
     menuBar.add(displayMenu);
     value panel = JPanel();
     panel.setSize(
-        processor.screen.width * Main.scale,
-        processor.screen.height * Main.scale);
+        machine.width * Main.scale,
+        machine.height * Main.scale);
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);
@@ -53,7 +60,7 @@ shared void main() {
     frame.setVisible(true);
 
     renderMenuItem.addActionListener((ActionEvent e) {
-        Main.render(processor.screen, panel);
+        Main.render(machine, panel);
     });
-    Main.render(processor.screen, panel);
+    Main.render(machine, panel);
 }
