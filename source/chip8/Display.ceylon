@@ -1,14 +1,15 @@
 import java.awt { Color, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
+import java.io { JFile = File }
 import java.lang { IntArray }
 import java.util { Random }
 import javax.swing { JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel }
 import ceylon.collection { HashMap, MutableMap }
-import ceylon.file { parsePath, File }
+import ceylon.file { File, current, parsePath }
 
 class Display() {
     variable Machine? machine = null;
-    Integer scale = 4;
+    Integer scale = 16;
     Color bgColor = Color.\iBLACK;
     Color fgColor = Color.\iGREEN;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
@@ -29,7 +30,6 @@ class Display() {
     keymap.put(KeyEvent.\iVK_E, #e);
     keymap.put(KeyEvent.\iVK_F, #f);
 
-    // TODO: configurable key maps
     // TODO: per-rom key maps
     value loadMenuItem = JMenuItem("Load ROM...");
     value renderMenuItem = JMenuItem("Render Now");
@@ -47,8 +47,8 @@ class Display() {
 
             if (exists m = machine) {
                 g.color = fgColor;
-                for (x in 0:width) {
-                    for (y in 0:height) {
+                for (x in 0:screenWidth) {
+                    for (y in 0:screenHeight) {
                         if (m.getPixel(x, y)) {
                             g.fillRect(x * scale, y * scale, scale, scale);
                         }
@@ -74,6 +74,7 @@ class Display() {
 
     loadMenuItem.addActionListener((ActionEvent e) {
         value chooser = JFileChooser();
+        chooser.currentDirectory = JFile(current.absolutePath.string);
         if (chooser.showOpenDialog(frame) == JFileChooser.approveOption) {
             value path = chooser.selectedFile.toPath().string;
             value resource = parsePath(path).resource;
