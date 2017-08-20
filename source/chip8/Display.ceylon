@@ -1,4 +1,4 @@
-import java.awt { Color, Graphics }
+import java.awt { Color, Dimension, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
 import java.lang { IntArray }
@@ -9,7 +9,7 @@ import ceylon.file { File, current, parsePath }
 
 class Display() {
     variable Machine? machine = null;
-    Integer scale = 16;
+    variable Integer scale = 16;
     Color bgColor = Color.\iBLACK;
     Color fgColor = Color.\iGREEN;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
@@ -62,11 +62,14 @@ class Display() {
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);
     frame.defaultCloseOperation = JFrame.exitOnClose;
-    // TODO: make frame stick to panel size
-    // TODO: configurable pixel scaling (with hotkeys like Ctrl+, Ctrl-)
-    //frame.resizable = false;
-    //frame.pack();
-    frame.setSize(screenWidth * scale + 100, screenHeight * scale + 100);
+    frame.resizable = false;
+
+    void resize() {
+        frame.setMinimumSize(Dimension(screenWidth * scale, screenHeight * scale));
+        frame.pack();
+    }
+
+    resize();
 
     shared void setVisible(Boolean visible) {
         frame.setVisible(visible);
@@ -105,6 +108,14 @@ class Display() {
                 if (exists k = keymap.get(e.keyCode)) {
                     m.setKeyPressed(k, true);
                 }
+            }
+            else if (e.keyCode == KeyEvent.\iVK_EQUALS && e.controlDown) {
+                scale += 1;
+                resize();
+            }
+            else if (e.keyCode == KeyEvent.\iVK_MINUS && e.controlDown) {
+                scale -= 1;
+                resize();
             }
         }
 
