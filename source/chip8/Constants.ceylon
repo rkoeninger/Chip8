@@ -1,5 +1,5 @@
-Integer width = 64;
-Integer height = 32;
+Integer screenWidth = 64;
+Integer screenHeight = 32;
 Integer glyphWidth = 5;
 Integer[] glyphs = [
     // 0

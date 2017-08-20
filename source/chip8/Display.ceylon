@@ -1,4 +1,4 @@
-import java.awt { Color }
+import java.awt { Color, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.lang { IntArray }
 import java.util { Random }
@@ -9,8 +9,8 @@ import ceylon.file { parsePath, File }
 class Display() {
     variable Machine? machine = null;
     Integer scale = 4;
-    Color background = Color.\iBLACK;
-    Color foreground = Color.\iGREEN;
+    Color bgColor = Color.\iBLACK;
+    Color fgColor = Color.\iGREEN;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
     keymap.put(KeyEvent.\iVK_0, #0);
     keymap.put(KeyEvent.\iVK_1, #1);
@@ -40,8 +40,24 @@ class Display() {
     value menuBar = JMenuBar();
     menuBar.add(fileMenu);
     menuBar.add(displayMenu);
-    value panel = JPanel();
-    panel.setSize(width * scale, height * scale);
+    value panel = object extends JPanel() {
+        shared actual void paint(Graphics g) {
+            g.color = bgColor;
+            g.fillRect(0, 0, screenWidth * scale, screenHeight * scale);
+
+            if (exists m = machine) {
+                g.color = fgColor;
+                for (x in 0:width) {
+                    for (y in 0:height) {
+                        if (m.getPixel(x, y)) {
+                            g.fillRect(x * scale, y * scale, scale, scale);
+                        }
+                    }
+                }
+            }
+        }
+    };
+    panel.setSize(screenWidth * scale, screenHeight * scale);
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);
@@ -50,29 +66,10 @@ class Display() {
     // TODO: configurable pixel scaling (with hotkeys like Ctrl+, Ctrl-)
     //frame.resizable = false;
     //frame.pack();
-    frame.setSize(width * scale + 100, height * scale + 100);
+    frame.setSize(screenWidth * scale + 100, screenHeight * scale + 100);
 
     shared void setVisible(Boolean visible) {
         frame.setVisible(visible);
-    }
-
-    void render() {
-        value m = machine;
-        value g = panel.graphics;
-
-        g.color = background;
-        g.fillRect(0, 0, panel.width, panel.height);
-
-        if (exists m) {
-            g.color = foreground;
-            for (x in 0:width) {
-                for (y in 0:height) {
-                    if (m.getPixel(x, y)) {
-                        g.fillRect(x * scale, y * scale, scale, scale);
-                    }
-                }
-            }
-        }
     }
 
     loadMenuItem.addActionListener((ActionEvent e) {
@@ -99,7 +96,7 @@ class Display() {
     });
 
     renderMenuItem.addActionListener((ActionEvent e) {
-        render();
+        panel.repaint();
     });
 
     frame.addKeyListener(object extends KeyAdapter() {

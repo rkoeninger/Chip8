@@ -4,7 +4,7 @@ class Machine(Peripherals peripherals) {
     IntArray regs = IntArray(#10, 0);
     IntArray mem = IntArray(#1000, 0);
     IntArray stack = IntArray(#10, 0);
-    BooleanArray buffer = BooleanArray(width * height, false);
+    BooleanArray buffer = BooleanArray(screenWidth * screenHeight, false);
     BooleanArray keys = BooleanArray(#1, false);
     variable Integer pc = #200;
     variable Integer addr = 0;
@@ -16,9 +16,9 @@ class Machine(Peripherals peripherals) {
      * Flips pixel at (x, y).
      * Returns true if pixel was unset by this operation.
      */
-    Boolean flipPixel(Integer x, Integer y) => !(buffer[y * width + x] = !buffer[y * width + x]);
+    Boolean flipPixel(Integer x, Integer y) => !(buffer[y * screenWidth + x] = !buffer[y * screenWidth + x]);
 
-    shared Boolean getPixel(Integer x, Integer y) => buffer[y * width + x];
+    shared Boolean getPixel(Integer x, Integer y) => buffer[y * screenWidth + x];
 
     shared void setKeyPressed(Integer x, Boolean pressed) => keys[x] = pressed;
 
