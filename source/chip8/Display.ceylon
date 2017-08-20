@@ -3,7 +3,7 @@ import java.awt.event { ActionEvent }
 import java.util { Random }
 import javax.swing { JFrame, JMenu, JMenuBar, JMenuItem, JPanel }
 
-class MainFrame() {
+class Display() {
     Machine? machine = null;
     Integer scale = 4;
     Color background = Color.\iBLACK;
