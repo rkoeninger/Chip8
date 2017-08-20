@@ -87,10 +87,8 @@ class Display() {
                     for (b in bytes) {
                         data[i++] = b.unsigned;
                     }
-                    value m = Machine(ActualPeripherals());
+                    value m = Machine(data, ActualPeripherals());
                     machine = m;
-                    m.init();
-                    m.load(data);
                 }
             }
         }

@@ -1,6 +1,6 @@
 import java.lang { BooleanArray, IntArray }
 
-class Machine(Peripherals peripherals) {
+class Machine(IntArray rom, Peripherals peripherals) {
     IntArray regs = IntArray(#10, 0);
     IntArray mem = IntArray(#1000, 0);
     IntArray stack = IntArray(#10, 0);
@@ -12,6 +12,17 @@ class Machine(Peripherals peripherals) {
     variable Integer delay = 0;
     variable Integer sound = 0;
 
+    void copy(Integer start, Integer* source) {
+        variable Integer i = start;
+
+        for (b in source) {
+            mem[i++] = b;
+        }
+    }
+
+    copy(0, *glyphs*.leftLogicalShift(4));
+    copy(#200, *rom);
+
     /*
      * Flips pixel at (x, y).
      * Returns true if pixel was unset by this operation.
@@ -21,22 +32,6 @@ class Machine(Peripherals peripherals) {
     shared Boolean getPixel(Integer x, Integer y) => buffer[y * screenWidth + x];
 
     shared void setKeyPressed(Integer x, Boolean pressed) => keys[x] = pressed;
-
-    shared void init() {
-        variable Integer i = 0;
-
-        for (b in glyphs) {
-            mem[i++] = b.leftLogicalShift(4);
-        }
-    }
-
-    shared void load(IntArray rom) {
-        variable Integer i = #200;
-
-        for (b in rom) {
-            mem[i++] = b;
-        }
-    }
 
     shared void cycle() {
         value opcode = mem[pc].leftLogicalShift(8).and(mem[pc + 1]);
