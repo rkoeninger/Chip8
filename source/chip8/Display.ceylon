@@ -34,10 +34,10 @@ class Display() {
     value loadMenuItem = JMenuItem("Load ROM...");
     value renderMenuItem = JMenuItem("Render Now");
     value fileMenu = JMenu("File");
-    fileMenu.add(loadMenuItem);
     value displayMenu = JMenu("Display");
-    displayMenu.add(renderMenuItem);
     value menuBar = JMenuBar();
+    fileMenu.add(loadMenuItem);
+    displayMenu.add(renderMenuItem);
     menuBar.add(fileMenu);
     menuBar.add(displayMenu);
     value panel = object extends JPanel() {
@@ -57,7 +57,6 @@ class Display() {
             }
         }
     };
-    panel.setSize(screenWidth * scale, screenHeight * scale);
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
     frame.contentPane.add(panel);
@@ -65,7 +64,7 @@ class Display() {
     frame.resizable = false;
 
     void resize() {
-        frame.setMinimumSize(Dimension(screenWidth * scale, screenHeight * scale));
+        panel.preferredSize = Dimension(screenWidth * scale, screenHeight * scale);
         frame.pack();
     }
 
@@ -103,19 +102,18 @@ class Display() {
 
     frame.addKeyListener(object extends KeyAdapter() {
         shared actual void keyPressed(KeyEvent e) {
-            value m = machine;
-            if (exists m) {
-                if (exists k = keymap.get(e.keyCode)) {
-                    m.setKeyPressed(k, true);
-                }
+            if (exists k = keymap.get(e.keyCode)) {
+                machine?.setKeyPressed(k, true);
             }
             else if (e.keyCode == KeyEvent.\iVK_EQUALS && e.controlDown) {
                 scale += 1;
                 resize();
             }
             else if (e.keyCode == KeyEvent.\iVK_MINUS && e.controlDown) {
-                scale -= 1;
-                resize();
+                if (scale > 4) {
+                    scale -= 1;
+                    resize();
+                }
             }
         }
 
