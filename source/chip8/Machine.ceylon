@@ -23,18 +23,13 @@ class Machine(IntArray rom, Peripherals peripherals) {
     copy(0, *glyphs*.leftLogicalShift(4));
     copy(#200, *rom);
 
-    /*
-     * Flips pixel at (x, y).
-     * Returns true if pixel was unset by this operation.
-     */
-    Boolean flipPixel(Integer x, Integer y) => !(buffer[y * screenWidth + x] = !buffer[y * screenWidth + x]);
-
     shared Boolean getPixel(Integer x, Integer y) => buffer[y * screenWidth + x];
 
     shared void setKeyPressed(Integer x, Boolean pressed) => keys[x] = pressed;
 
     shared void cycle() {
-        value opcode = mem[pc].leftLogicalShift(8).and(mem[pc + 1]);
+        value opcode = mem[pc].leftLogicalShift(8).or(mem[pc + 1]);
+        print("opcode: ``opcode`` addr: ``addr`` pc: ``pc`` mem[pc]: ``mem[pc]`` mem[pc+1]: ``mem[pc + 1]``");
 
         if (execute(opcode)) {
             pc += 2;
@@ -140,6 +135,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
         }
         else if (n0 == #b) {
             pc = regs[0] + opcode.and(#0fff);
+            increment = false;
         }
         else if (n0 == #c) {
             value mask = opcode.and(#00ff);
@@ -150,12 +146,16 @@ class Machine(IntArray rom, Peripherals peripherals) {
             value y = regs[n2];
             value h = regs[n3];
             variable Boolean unset = false;
+
             for (dy in 0:h) {
                 value line = mem[addr + dy];
 
                 for (dx in 0:8) {
+                    value index = y * screenWidth + x;
+
                     if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
-                        unset ||= flipPixel(x + dx, y + dy);
+                        unset ||= buffer[index];
+                        buffer[index] = !buffer[index];
                     }
                 }
             }
@@ -202,7 +202,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
             }
         }
         else {
-            throw Exception("Invalid opcode");
+            throw Exception("Invalid opcode: ``opcode``");
         }
 
         return increment;

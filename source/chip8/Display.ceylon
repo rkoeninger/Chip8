@@ -1,14 +1,15 @@
 import java.awt { Color, Dimension, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
-import java.lang { IntArray }
+import java.lang { IntArray, Thread }
 import java.util { Random }
-import javax.swing { JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel }
+import javax.swing { JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
 
 class Display() {
     variable Machine? machine = null;
+    variable Thread? thread = null;
     variable Integer scale = 16;
     Color bgColor = Color.\iBLACK;
     Color fgColor = Color.\iGREEN;
@@ -89,8 +90,23 @@ class Display() {
                     for (b in bytes) {
                         data[i++] = b.unsigned;
                     }
-                    value m = Machine(data, ActualPeripherals());
-                    machine = m;
+                    machine = Machine(data, ActualPeripherals());
+                    thread = Thread(() {
+                        while (true) {
+                            value m = machine;
+                            if (exists m) {
+                                m.cycle();
+                                SwingUtilities.invokeLater(() {
+                                    panel.repaint();
+                                });
+                                Thread.sleep(100);
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                    });
+                    thread?.start();
                 }
             }
         }
@@ -128,6 +144,8 @@ class Display() {
     });
 }
 
+// TODO: implement beep
+// TODO: implement key input blocking
 class ActualPeripherals() satisfies Peripherals {
     Random r = Random();
     shared actual void beep() => print("beep!");
