@@ -151,7 +151,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
                 value line = mem[addr + dy];
 
                 for (dx in 0:8) {
-                    value index = y * screenWidth + x;
+                    value index = (y + dy) * screenWidth + x + dx;
 
                     if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
                         unset ||= buffer[index];
