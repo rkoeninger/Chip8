@@ -89,6 +89,12 @@ class Machine(IntArray rom, Peripherals peripherals) {
         else if (n0 == 5 && regs[n1] == regs[n2]) {
             pc += 2;
         }
+        else if (n0 == 6) {
+            regs[n1] = opcode.and(#00ff);
+        }
+        else if (n0 == 7) {
+            regs[n1] = (regs[n1] + opcode.and(#00ff)).and(#ff);
+        }
         else if (opcode.and(#f00f) == #8000) {
             regs[n1] = regs[n2];
         }
