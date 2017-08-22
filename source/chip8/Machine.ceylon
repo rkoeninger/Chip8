@@ -1,4 +1,4 @@
-import java.lang { BooleanArray, IntArray }
+import java.lang { BooleanArray, IntArray, JInteger = Integer }
 
 class Machine(IntArray rom, Peripherals peripherals) {
     IntArray regs = IntArray(#10, 0);
@@ -60,7 +60,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
             pc = stack[--pointer];
         }
         else if (n0 == 0) {
-            print("RCA 1802 programs not supported: ``(opcode.and(#0fff))``");
+            print("RCA 1802 programs not supported: ``JInteger.toHexString(opcode.and(#0fff))``");
         }
         else if (n0 == 1) {
             pc = opcode.and(#0fff);
@@ -211,7 +211,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
             }
         }
         else {
-            throw Exception("Invalid opcode: ``opcode``");
+            throw Exception("Invalid opcode: ``JInteger.toHexString(opcode)``");
         }
 
         return increment;
