@@ -34,11 +34,8 @@ class Machine(IntArray rom, Peripherals peripherals) {
             pc += 2;
         }
 
-        if (sound == 1) {
-            peripherals.beep();
-        }
-
         if (sound > 0) {
+            peripherals.beep();
             sound--;
         }
 
@@ -60,10 +57,10 @@ class Machine(IntArray rom, Peripherals peripherals) {
             }
         }
         else if (opcode == #00ee) {
-            pc = stack[pointer--];
+            pc = stack[--pointer];
         }
         else if (n0 == 0) {
-            throw Exception("RCA 1802 programs not supported");
+            print("RCA 1802 programs not supported: ``(opcode.and(#0fff))``");
         }
         else if (n0 == 1) {
             pc = opcode.and(#0fff);
@@ -160,7 +157,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
                 for (dx in 0:8) {
                     value index = (y + dy) * screenWidth + x + dx;
 
-                    if (line.rightLogicalShift(7 - dx).and(#01) != 0) {
+                    if (index < buffer.size && line.rightLogicalShift(7 - dx).and(#01) != 0) {
                         unset ||= buffer[index];
                         buffer[index] = !buffer[index];
                     }
