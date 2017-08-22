@@ -5,7 +5,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
     IntArray mem = IntArray(#1000, 0);
     IntArray stack = IntArray(#10, 0);
     BooleanArray buffer = BooleanArray(screenWidth * screenHeight, false);
-    BooleanArray keys = BooleanArray(#1, false);
+    BooleanArray keys = BooleanArray(#10, false);
     variable Integer pc = #200;
     variable Integer addr = 0;
     variable Integer pointer = 0;
@@ -29,7 +29,6 @@ class Machine(IntArray rom, Peripherals peripherals) {
 
     shared void cycle() {
         value opcode = mem[pc].leftLogicalShift(8).or(mem[pc + 1]);
-        print("opcode: ``opcode`` addr: ``addr`` pc: ``pc`` mem[pc]: ``mem[pc]`` mem[pc+1]: ``mem[pc + 1]``");
 
         if (execute(opcode)) {
             pc += 2;
@@ -75,14 +74,20 @@ class Machine(IntArray rom, Peripherals peripherals) {
             pc = opcode.and(#0fff);
             increment = false;
         }
-        else if (n0 == 3 && regs[n1] == opcode.and(#00ff)) {
-            pc += 2;
+        else if (n0 == 3) {
+            if (regs[n1] == opcode.and(#00ff)) {
+                pc += 2;
+            }
         }
-        else if (n0 == 4 && regs[n1] != opcode.and(#00ff)) {
-            pc += 2;
+        else if (n0 == 4) {
+            if (regs[n1] != opcode.and(#00ff)) {
+                pc += 2;
+            }
         }
-        else if (n0 == 5 && regs[n1] == regs[n2]) {
-            pc += 2;
+        else if (n0 == 5) {
+            if (regs[n1] == regs[n2]) {
+                pc += 2;
+            }
         }
         else if (n0 == 6) {
             regs[n1] = opcode.and(#00ff);
@@ -127,8 +132,10 @@ class Machine(IntArray rom, Peripherals peripherals) {
             regs[n1] = original.leftLogicalShift(1).and(#ff);
             regs[#f] = original.rightLogicalShift(7).and(#01);
         }
-        else if (opcode.and(#f00f) == #9000 && regs[n1] != regs[n2]) {
-            pc += 2;
+        else if (opcode.and(#f00f) == #9000) {
+            if (regs[n1] != regs[n2]) {
+                pc += 2;
+            }
         }
         else if (n0 == #a) {
             addr = opcode.and(#0fff);
@@ -153,19 +160,24 @@ class Machine(IntArray rom, Peripherals peripherals) {
                 for (dx in 0:8) {
                     value index = (y + dy) * screenWidth + x + dx;
 
-                    if (line.leftLogicalShift(7 - dx).and(#01) != 0) {
+                    if (line.rightLogicalShift(7 - dx).and(#01) != 0) {
                         unset ||= buffer[index];
                         buffer[index] = !buffer[index];
                     }
                 }
             }
+
             regs[#f] = if (unset) then 1 else 0;
         }
-        else if (opcode.and(#f0ff) == #e09e && keys.get(n1)) {
-            pc += 2;
+        else if (opcode.and(#f0ff) == #e09e) {
+            if (keys.get(n1)) {
+                pc += 2;
+            }
         }
-        else if (opcode.and(#f0ff) == #e0a1 && !keys.get(n1)) {
-            pc += 2;
+        else if (opcode.and(#f0ff) == #e0a1) {
+            if (!keys.get(n1)) {
+                pc += 2;
+            }
         }
         else if (opcode.and(#f0ff) == #f007) {
             regs[n1] = delay;

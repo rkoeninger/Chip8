@@ -99,7 +99,6 @@ class Display() {
                                 SwingUtilities.invokeLater(() {
                                     panel.repaint();
                                 });
-                                Thread.sleep(100);
                             }
                             else {
                                 break;
