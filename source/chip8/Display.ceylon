@@ -3,7 +3,7 @@ import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
 import java.lang { IntArray, Thread }
 import java.util { Random }
-import javax.swing { JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
+import javax.swing { JColorChooser, JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
 
@@ -11,8 +11,8 @@ class Display() {
     variable Machine? machine = null;
     variable Thread? thread = null;
     variable Integer scale = 16;
-    Color bgColor = Color.\iBLACK;
-    Color fgColor = Color.\iGREEN;
+    variable Color fgColor = Color.\iMAGENTA;
+    variable Color bgColor = Color.\iCYAN;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
     keymap.put(KeyEvent.\iVK_0, #0);
     keymap.put(KeyEvent.\iVK_1, #1);
@@ -34,11 +34,17 @@ class Display() {
     // TODO: per-rom key maps
     value loadMenuItem = JMenuItem("Load ROM...");
     value renderMenuItem = JMenuItem("Render Now");
+    value swapColorsMenuItem = JMenuItem("Swap Colors");
+    value pickFgColorMenuItem = JMenuItem("Pick Foreground Color...");
+    value pickBgColorMenuItem = JMenuItem("Pick Background Color...");
     value fileMenu = JMenu("File");
     value displayMenu = JMenu("Display");
     value menuBar = JMenuBar();
     fileMenu.add(loadMenuItem);
     displayMenu.add(renderMenuItem);
+    displayMenu.add(swapColorsMenuItem);
+    displayMenu.add(pickFgColorMenuItem);
+    displayMenu.add(pickBgColorMenuItem);
     menuBar.add(fileMenu);
     menuBar.add(displayMenu);
     value panel = object extends JPanel() {
@@ -114,6 +120,20 @@ class Display() {
 
     renderMenuItem.addActionListener((ActionEvent e) {
         panel.repaint();
+    });
+
+    swapColorsMenuItem.addActionListener((ActionEvent e) {
+        value temp = bgColor;
+        bgColor = fgColor;
+        fgColor = temp;
+    });
+
+    pickFgColorMenuItem.addActionListener((ActionEvent e) {
+        fgColor = JColorChooser.showDialog(frame, "Foreground Color", fgColor);
+    });
+
+    pickBgColorMenuItem.addActionListener((ActionEvent e) {
+        bgColor = JColorChooser.showDialog(frame, "Background Color", bgColor);
     });
 
     frame.addKeyListener(object extends KeyAdapter() {
