@@ -14,22 +14,22 @@ class Display() {
     variable Color fgColor = Color.\iMAGENTA;
     variable Color bgColor = Color.\iCYAN;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
-    keymap.put(KeyEvent.\iVK_0, #0);
+    keymap.put(KeyEvent.\iVK_X, #0);
     keymap.put(KeyEvent.\iVK_1, #1);
     keymap.put(KeyEvent.\iVK_2, #2);
     keymap.put(KeyEvent.\iVK_3, #3);
-    keymap.put(KeyEvent.\iVK_4, #4);
-    keymap.put(KeyEvent.\iVK_5, #5);
-    keymap.put(KeyEvent.\iVK_6, #6);
-    keymap.put(KeyEvent.\iVK_7, #7);
-    keymap.put(KeyEvent.\iVK_8, #8);
-    keymap.put(KeyEvent.\iVK_9, #9);
-    keymap.put(KeyEvent.\iVK_A, #a);
-    keymap.put(KeyEvent.\iVK_B, #b);
-    keymap.put(KeyEvent.\iVK_C, #c);
-    keymap.put(KeyEvent.\iVK_D, #d);
-    keymap.put(KeyEvent.\iVK_E, #e);
-    keymap.put(KeyEvent.\iVK_F, #f);
+    keymap.put(KeyEvent.\iVK_Q, #4);
+    keymap.put(KeyEvent.\iVK_W, #5);
+    keymap.put(KeyEvent.\iVK_E, #6);
+    keymap.put(KeyEvent.\iVK_A, #7);
+    keymap.put(KeyEvent.\iVK_S, #8);
+    keymap.put(KeyEvent.\iVK_D, #9);
+    keymap.put(KeyEvent.\iVK_4, #a);
+    keymap.put(KeyEvent.\iVK_R, #b);
+    keymap.put(KeyEvent.\iVK_F, #c);
+    keymap.put(KeyEvent.\iVK_V, #d);
+    keymap.put(KeyEvent.\iVK_C, #e);
+    keymap.put(KeyEvent.\iVK_Z, #f);
 
     // TODO: per-rom key maps
     value loadMenuItem = JMenuItem("Load ROM...");
@@ -37,23 +37,23 @@ class Display() {
     value swapColorsMenuItem = JMenuItem("Swap Colors");
     value pickFgColorMenuItem = JMenuItem("Pick Foreground Color...");
     value pickBgColorMenuItem = JMenuItem("Pick Background Color...");
-    value fileMenu = JMenu("File");
+    value machineMenu = JMenu("Machine");
     value displayMenu = JMenu("Display");
     value menuBar = JMenuBar();
-    fileMenu.add(loadMenuItem);
+    machineMenu.add(loadMenuItem);
     displayMenu.add(renderMenuItem);
     displayMenu.add(swapColorsMenuItem);
     displayMenu.add(pickFgColorMenuItem);
     displayMenu.add(pickBgColorMenuItem);
-    menuBar.add(fileMenu);
+    menuBar.add(machineMenu);
     menuBar.add(displayMenu);
     value panel = object extends JPanel() {
         shared actual void paint(Graphics g) {
             g.color = bgColor;
             g.fillRect(0, 0, screenWidth * scale, screenHeight * scale);
+            g.color = fgColor;
 
             if (exists m = machine) {
-                g.color = fgColor;
                 for (x in 0:screenWidth) {
                     for (y in 0:screenHeight) {
                         if (m.getPixel(x, y)) {
@@ -61,6 +61,9 @@ class Display() {
                         }
                     }
                 }
+            }
+            else {
+                g.drawString("Start by opening Machine > Load ROM...", 4, 4 + g.fontMetrics.height);
             }
         }
     };
