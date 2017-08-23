@@ -63,7 +63,13 @@ class Display() {
                 }
             }
             else {
-                g.drawString("Start by opening Machine > Load ROM...", 4, 4 + g.fontMetrics.height);
+                g.font = Font(g.font.family, g.font.style, 24);
+                value message = "Start by opening Machine > Load ROM...";
+                value fontBounds = g.fontMetrics.getStringBounds(message, g);
+                g.drawString(
+                    message,
+                    width / 2 - fontBounds.centerX.integer,
+                    height / 2 - fontBounds.centerY.integer);
             }
         }
     };
