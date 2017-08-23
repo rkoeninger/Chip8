@@ -11,8 +11,8 @@ class Display() {
     variable Machine? machine = null;
     variable Thread? thread = null;
     variable Integer scale = 16;
-    variable Color fgColor = Color.\iMAGENTA;
-    variable Color bgColor = Color.\iCYAN;
+    variable Color fgColor = Color.\iWHITE;
+    variable Color bgColor = Color.\iBLACK;
     MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
     keymap.put(KeyEvent.\iVK_X, #0);
     keymap.put(KeyEvent.\iVK_1, #1);
