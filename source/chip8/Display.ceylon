@@ -10,26 +10,28 @@ import ceylon.file { File, current, parsePath }
 class Display() {
     variable Machine? machine = null;
     variable Thread? thread = null;
+    Integer minScale = 8;
     variable Integer scale = 16;
     variable Color fgColor = Color.\iWHITE;
     variable Color bgColor = Color.\iBLACK;
-    MutableMap<Integer, Integer> keymap = HashMap<Integer, Integer>();
-    keymap.put(KeyEvent.\iVK_X, #0);
-    keymap.put(KeyEvent.\iVK_1, #1);
-    keymap.put(KeyEvent.\iVK_2, #2);
-    keymap.put(KeyEvent.\iVK_3, #3);
-    keymap.put(KeyEvent.\iVK_Q, #4);
-    keymap.put(KeyEvent.\iVK_W, #5);
-    keymap.put(KeyEvent.\iVK_E, #6);
-    keymap.put(KeyEvent.\iVK_A, #7);
-    keymap.put(KeyEvent.\iVK_S, #8);
-    keymap.put(KeyEvent.\iVK_D, #9);
-    keymap.put(KeyEvent.\iVK_4, #a);
-    keymap.put(KeyEvent.\iVK_R, #b);
-    keymap.put(KeyEvent.\iVK_F, #c);
-    keymap.put(KeyEvent.\iVK_V, #d);
-    keymap.put(KeyEvent.\iVK_C, #e);
-    keymap.put(KeyEvent.\iVK_Z, #f);
+    BlockingQueue<Integer> keyQueue = SynchronousQueue<Integer>();
+    MutableMap<Integer, Integer> keyMap = HashMap<Integer, Integer>();
+    keyMap.put(KeyEvent.\iVK_X, #0);
+    keyMap.put(KeyEvent.\iVK_1, #1);
+    keyMap.put(KeyEvent.\iVK_2, #2);
+    keyMap.put(KeyEvent.\iVK_3, #3);
+    keyMap.put(KeyEvent.\iVK_Q, #4);
+    keyMap.put(KeyEvent.\iVK_W, #5);
+    keyMap.put(KeyEvent.\iVK_E, #6);
+    keyMap.put(KeyEvent.\iVK_A, #7);
+    keyMap.put(KeyEvent.\iVK_S, #8);
+    keyMap.put(KeyEvent.\iVK_D, #9);
+    keyMap.put(KeyEvent.\iVK_4, #c);
+    keyMap.put(KeyEvent.\iVK_R, #d);
+    keyMap.put(KeyEvent.\iVK_F, #e);
+    keyMap.put(KeyEvent.\iVK_V, #f);
+    keyMap.put(KeyEvent.\iVK_C, #b);
+    keyMap.put(KeyEvent.\iVK_Z, #a);
 
     // TODO: per-rom key maps
     value loadMenuItem = JMenuItem("Load ROM...");
