@@ -1,8 +1,9 @@
-import java.awt { Color, Dimension, Graphics }
+import java.awt { Color, Dimension, Font, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
 import java.lang { IntArray, Thread }
 import java.util { Random }
+import java.util.concurrent { BlockingQueue, SynchronousQueue }
 import javax.swing { JColorChooser, JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
@@ -104,10 +105,20 @@ class Display() {
                     value bytes = reader.readBytes(resource.size);
                     value data = IntArray(bytes.size);
                     variable Integer i = 0;
+
                     for (b in bytes) {
                         data[i++] = b.unsigned;
                     }
-                    machine = Machine(data, ActualPeripherals());
+
+                    machine = Machine(data, object satisfies Peripherals {
+                        Random r = Random();
+                        shared actual void beep() => print("beep!"); // TODO: implement beep
+                        shared actual Integer rand() => r.nextInt(#100);
+                        shared actual Integer waitForKeyPressed() => keyQueue.take();
+                    });
+                    SwingUtilities.invokeLater(() {
+                        panel.repaint();
+                    });
                     thread = Thread(() {
                         while (true) {
                             value m = machine;
@@ -153,15 +164,16 @@ class Display() {
 
     frame.addKeyListener(object extends KeyAdapter() {
         shared actual void keyPressed(KeyEvent e) {
-            if (exists k = keymap.get(e.keyCode)) {
+            if (exists k = keyMap.get(e.keyCode)) {
                 machine?.setKeyPressed(k, true);
+                keyQueue.offer(k);
             }
             else if (e.keyCode == KeyEvent.\iVK_EQUALS && e.controlDown) {
                 scale += 1;
                 resize();
             }
             else if (e.keyCode == KeyEvent.\iVK_MINUS && e.controlDown) {
-                if (scale > 4) {
+                if (scale > minScale) {
                     scale -= 1;
                     resize();
                 }
@@ -171,19 +183,10 @@ class Display() {
         shared actual void keyReleased(KeyEvent e) {
             value m = machine;
             if (exists m) {
-                if (exists k = keymap.get(e.keyCode)) {
+                if (exists k = keyMap.get(e.keyCode)) {
                     m.setKeyPressed(k, false);
                 }
             }
         }
     });
-}
-
-// TODO: implement beep
-// TODO: implement key input blocking
-class ActualPeripherals() satisfies Peripherals {
-    Random r = Random();
-    shared actual void beep() => print("beep!");
-    shared actual Integer waitForKeyPressed() => 0;
-    shared actual Integer rand() => r.nextInt(#100);
 }
