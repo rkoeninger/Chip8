@@ -132,11 +132,15 @@ class Display() {
     });
 
     pickFgColorMenuItem.addActionListener((ActionEvent e) {
-        fgColor = JColorChooser.showDialog(frame, "Foreground Color", fgColor);
+        if (exists c = JColorChooser.showDialog(frame, "Foreground Color", fgColor)) {
+            fgColor = c;
+        }
     });
 
     pickBgColorMenuItem.addActionListener((ActionEvent e) {
-        bgColor = JColorChooser.showDialog(frame, "Background Color", bgColor);
+        if (exists c = JColorChooser.showDialog(frame, "Background Color", bgColor)) {
+            bgColor = c;
+        }
     });
 
     frame.addKeyListener(object extends KeyAdapter() {
