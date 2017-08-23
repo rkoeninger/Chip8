@@ -1,5 +1,5 @@
 [![Intellij Version](https://img.shields.io/badge/intellij-2017.2.2-18a3fa.svg)](https://www.jetbrains.com/idea/)
-[![Ceylon Version](https://img.shields.io/badge/ceylon-1.3.2-e29612.svg)](https://ceylon-lang.org/)
+[![Ceylon Version](https://img.shields.io/badge/ceylon-1.3.3-e29612.svg)](https://ceylon-lang.org/)
 
 # CHIP-8
 
