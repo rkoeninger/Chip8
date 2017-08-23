@@ -34,66 +34,49 @@ class Display() {
     keyMap.put(KeyEvent.\iVK_C, #b);
     keyMap.put(KeyEvent.\iVK_Z, #a);
 
-    // TODO: per-rom key maps
-    value loadMenuItem = JMenuItem("Load ROM...");
-    value renderMenuItem = JMenuItem("Render Now");
-    value swapColorsMenuItem = JMenuItem("Swap Colors");
-    value pickFgColorMenuItem = JMenuItem("Pick Foreground Color...");
-    value pickBgColorMenuItem = JMenuItem("Pick Background Color...");
-    value machineMenu = JMenu("Machine");
-    value displayMenu = JMenu("Display");
-    value menuBar = JMenuBar();
-    machineMenu.add(loadMenuItem);
-    displayMenu.add(renderMenuItem);
-    displayMenu.add(swapColorsMenuItem);
-    displayMenu.add(pickFgColorMenuItem);
-    displayMenu.add(pickBgColorMenuItem);
-    menuBar.add(machineMenu);
-    menuBar.add(displayMenu);
-    value panel = object extends JPanel() {
-        shared actual void paint(Graphics g) {
-            g.color = bgColor;
-            g.fillRect(0, 0, screenWidth * scale, screenHeight * scale);
-            g.color = fgColor;
+    void doPaint(JPanel panel, Graphics g) {
+        g.color = bgColor;
+        g.fillRect(0, 0, screenWidth * scale, screenHeight * scale);
+        g.color = fgColor;
 
-            if (exists m = machine) {
-                for (x in 0:screenWidth) {
-                    for (y in 0:screenHeight) {
-                        if (m.getPixel(x, y)) {
-                            g.fillRect(x * scale, y * scale, scale, scale);
-                        }
+        if (exists m = machine) {
+            for (x in 0:screenWidth) {
+                for (y in 0:screenHeight) {
+                    if (m.getPixel(x, y)) {
+                        g.fillRect(x * scale, y * scale, scale, scale);
                     }
                 }
             }
-            else {
-                g.font = Font(g.font.family, g.font.style, 24);
-                value message = "Start by opening Machine > Load ROM...";
-                value fontBounds = g.fontMetrics.getStringBounds(message, g);
-                g.drawString(
-                    message,
-                    width / 2 - fontBounds.centerX.integer,
-                    height / 2 - fontBounds.centerY.integer);
-            }
         }
-    };
-    value frame = JFrame("CHIP-8");
-    frame.jMenuBar = menuBar;
-    frame.contentPane.add(panel);
-    frame.defaultCloseOperation = JFrame.exitOnClose;
-    frame.resizable = false;
+        else {
+            g.font = Font(g.font.family, g.font.style, 24);
+            value message = "Start by opening Machine > Load ROM...";
+            value fontBounds = g.fontMetrics.getStringBounds(message, g);
+            g.drawString(
+                message,
+                panel.width / 2 - fontBounds.centerX.integer,
+                panel.height / 2 - fontBounds.centerY.integer);
+        }
+    }
 
-    void resize() {
+    void doResize(JFrame frame, JPanel panel) {
         panel.preferredSize = Dimension(screenWidth * scale, screenHeight * scale);
         frame.pack();
     }
 
-    resize();
-
-    shared void setVisible(Boolean visible) {
-        frame.setVisible(visible);
+    void doZoomIn(JFrame frame, JPanel panel) {
+        scale += 1;
+        doResize(frame, panel);
     }
 
-    loadMenuItem.addActionListener((ActionEvent e) {
+    void doZoomOut(JFrame frame, JPanel panel) {
+        if (scale > minScale) {
+            scale -= 1;
+            doResize(frame, panel);
+        }
+    }
+
+    void doLoadRom(JFrame frame, JPanel panel) {
         value chooser = JFileChooser();
         chooser.currentDirectory = JFile(current.absolutePath.string);
         if (chooser.showOpenDialog(frame) == JFileChooser.approveOption) {
@@ -138,6 +121,40 @@ class Display() {
                 }
             }
         }
+    }
+
+    // TODO: per-rom key maps
+    value loadMenuItem = JMenuItem("Load ROM...");
+    value renderMenuItem = JMenuItem("Render Now");
+    value swapColorsMenuItem = JMenuItem("Swap Colors");
+    value pickFgColorMenuItem = JMenuItem("Pick Foreground Color...");
+    value pickBgColorMenuItem = JMenuItem("Pick Background Color...");
+    value machineMenu = JMenu("Machine");
+    value displayMenu = JMenu("Display");
+    value menuBar = JMenuBar();
+    machineMenu.add(loadMenuItem);
+    displayMenu.add(renderMenuItem);
+    displayMenu.add(swapColorsMenuItem);
+    displayMenu.add(pickFgColorMenuItem);
+    displayMenu.add(pickBgColorMenuItem);
+    menuBar.add(machineMenu);
+    menuBar.add(displayMenu);
+    value panel = object extends JPanel() {
+        shared actual void paint(Graphics g) => doPaint(this, g);
+    };
+    value frame = JFrame("CHIP-8");
+    frame.jMenuBar = menuBar;
+    frame.contentPane.add(panel);
+    frame.defaultCloseOperation = JFrame.exitOnClose;
+    frame.resizable = false;
+    doResize(frame, panel);
+
+    shared void setVisible(Boolean visible) {
+        frame.setVisible(visible);
+    }
+
+    loadMenuItem.addActionListener((ActionEvent e) {
+        doLoadRom(frame, panel);
     });
 
     renderMenuItem.addActionListener((ActionEvent e) {
@@ -169,23 +186,19 @@ class Display() {
                 keyQueue.offer(k);
             }
             else if (e.keyCode == KeyEvent.\iVK_EQUALS && e.controlDown) {
-                scale += 1;
-                resize();
+                doZoomIn(frame, panel);
             }
             else if (e.keyCode == KeyEvent.\iVK_MINUS && e.controlDown) {
-                if (scale > minScale) {
-                    scale -= 1;
-                    resize();
-                }
+                doZoomOut(frame, panel);
+            }
+            else if (e.keyCode == KeyEvent.\iVK_O && e.controlDown) {
+                doLoadRom(frame, panel);
             }
         }
 
         shared actual void keyReleased(KeyEvent e) {
-            value m = machine;
-            if (exists m) {
-                if (exists k = keyMap.get(e.keyCode)) {
-                    m.setKeyPressed(k, false);
-                }
+            if (exists k = keyMap.get(e.keyCode)) {
+                machine?.setKeyPressed(k, false);
             }
         }
     });
