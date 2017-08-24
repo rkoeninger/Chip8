@@ -59,9 +59,6 @@ class Machine(IntArray rom, Peripherals peripherals) {
         else if (opcode == #00ee) {
             pc = stack[--pointer];
         }
-        else if (n0 == 0) {
-            print("RCA 1802 programs not supported: ``JInteger.toHexString(opcode.and(#0fff))``");
-        }
         else if (n0 == 1) {
             pc = opcode.and(#0fff);
             increment = false;
@@ -129,7 +126,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
             regs[n1] = original.leftLogicalShift(1).and(#ff);
             regs[#f] = original.rightLogicalShift(7).and(#01);
         }
-        else if (opcode.and(#f00f) == #9000) {
+        else if (n0 == 9) {
             if (regs[n1] != regs[n2]) {
                 pc += 2;
             }
@@ -190,6 +187,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
         }
         else if (opcode.and(#f0ff) == #f01e) {
             addr += regs[n1];
+            regs[#f] = if (addr > #0fff) then 1 else 0;
         }
         else if (opcode.and(#f0ff) == #f029) {
             addr = regs[n1] * glyphWidth;
@@ -201,13 +199,13 @@ class Machine(IntArray rom, Peripherals peripherals) {
             mem[addr + 2] = x % 10;
         }
         else if (opcode.and(#f0ff) == #f055) {
-            for (i in 0..n1) {
-                mem[addr + i] = regs[i];
+            for (i in 0..(n1 + 1)) {
+                mem[addr++] = regs[i];
             }
         }
         else if (opcode.and(#f0ff) == #f065) {
-            for (i in 0..n1) {
-                regs[i] = mem[addr + i];
+            for (i in 0..(n1 + 1)) {
+                regs[i] = mem[addr++];
             }
         }
         else {
