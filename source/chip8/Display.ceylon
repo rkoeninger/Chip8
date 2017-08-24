@@ -1,16 +1,15 @@
-import java.awt { Color, Dimension, Font, Graphics }
+import java.awt { BorderLayout, Color, Dimension, Font, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
-import java.lang { IntArray, Thread }
+import java.lang { IntArray, JString = String }
 import java.util { Random }
 import java.util.concurrent { BlockingQueue, SynchronousQueue }
-import javax.swing { JColorChooser, JFileChooser, JFrame, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
+import javax.swing { JColorChooser, JFileChooser, JFrame, JLabel, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
 
 class Display() {
     variable Machine? machine = null;
-    variable Thread? thread = null;
     Integer minScale = 8;
     variable Integer scale = 16;
     variable Color fgColor = Color.\iWHITE;
@@ -99,28 +98,20 @@ class Display() {
                         shared actual Integer rand() => r.nextInt(#100);
                         shared actual Integer waitForKeyPressed() => keyQueue.take();
                     });
-                    SwingUtilities.invokeLater(() {
-                        panel.repaint();
-                    });
-                    thread = Thread(() {
-                        while (true) {
-                            value m = machine;
-                            if (exists m) {
-                                m.cycle();
-                                SwingUtilities.invokeLater(() {
-                                    panel.repaint();
-                                });
-                                Thread.sleep(16);
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                    });
-                    thread?.start();
                 }
             }
         }
+    }
+
+    void doRepaintLater(JPanel panel) {
+        SwingUtilities.invokeLater(() {
+            panel.repaint();
+        });
+    }
+
+    void doCycle(JPanel panel) {
+        machine?.cycle();
+        doRepaintLater(panel);
     }
 
     // TODO: per-rom key maps
@@ -142,9 +133,11 @@ class Display() {
     value panel = object extends JPanel() {
         shared actual void paint(Graphics g) => doPaint(this, g);
     };
+    value label = JLabel("Start by opening Machine > Load ROM...");
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
-    frame.contentPane.add(panel);
+    frame.contentPane.add(panel, JString(BorderLayout.center));
+    frame.contentPane.add(label, JString(BorderLayout.south));
     frame.defaultCloseOperation = JFrame.exitOnClose;
     frame.resizable = false;
     doResize(frame, panel);
@@ -185,14 +178,13 @@ class Display() {
                 machine?.setKeyPressed(k, true);
                 keyQueue.offer(k);
             }
-            else if (e.keyCode == KeyEvent.\iVK_EQUALS && e.controlDown) {
-                doZoomIn(frame, panel);
-            }
-            else if (e.keyCode == KeyEvent.\iVK_MINUS && e.controlDown) {
-                doZoomOut(frame, panel);
-            }
-            else if (e.keyCode == KeyEvent.\iVK_O && e.controlDown) {
-                doLoadRom(frame, panel);
+            else if (e.controlDown) {
+                switch (e.keyCode)
+                case (KeyEvent.\iVK_SPACE) { doCycle(panel); }
+                else case (KeyEvent.\iVK_O) { doLoadRom(frame, panel); }
+                else case (KeyEvent.\iVK_EQUALS) { doZoomIn(frame, panel); }
+                else case (KeyEvent.\iVK_MINUS) { doZoomOut(frame, panel); }
+                else {}
             }
         }
 
