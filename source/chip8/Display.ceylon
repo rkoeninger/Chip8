@@ -49,7 +49,7 @@ class Display() {
             }
         }
         else {
-            g.font = Font(g.font.family, g.font.style, 24);
+            g.font = Font(g.font.family, g.font.style, scale * 3 / 2);
             value message = "Start by opening Machine > Load ROM...";
             value fontBounds = g.fontMetrics.getStringBounds(message, g);
             g.drawString(
