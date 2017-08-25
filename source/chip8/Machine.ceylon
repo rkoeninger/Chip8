@@ -145,10 +145,9 @@ class Machine(IntArray rom, Peripherals peripherals) {
         else if (n0 == #d) {
             value x = regs[n1];
             value y = regs[n2];
-            value h = regs[n3];
             variable Boolean unset = false;
 
-            for (dy in 0:h) {
+            for (dy in 0:n3) {
                 value line = mem[addr + dy];
 
                 for (dx in 0:8) {
