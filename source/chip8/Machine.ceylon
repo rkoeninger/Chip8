@@ -213,7 +213,7 @@ class Machine(IntArray rom, Peripherals peripherals) {
             addr = (addr + n1 + 1).and(#ffff);
         }
         else {
-            throw Exception("Invalid opcode: ``JInteger.toHexString(opcode)``");
+            throw Exception("Invalid opcode: ``hex(opcode)``");
         }
 
         return increment;

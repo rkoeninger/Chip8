@@ -4,7 +4,17 @@ import java.io { JFile = File }
 import java.lang { IntArray, JString = String }
 import java.util { Random }
 import java.util.concurrent { BlockingQueue, SynchronousQueue }
-import javax.swing { JColorChooser, JFileChooser, JFrame, JLabel, JMenu, JMenuBar, JMenuItem, JPanel, SwingUtilities }
+import javax.swing {
+    JColorChooser,
+    JFileChooser,
+    JFrame,
+    JLabel,
+    JMenu,
+    JMenuBar,
+    JMenuItem,
+    JPanel,
+    SwingUtilities
+}
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
 

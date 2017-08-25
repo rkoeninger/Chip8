@@ -1,3 +1,7 @@
+import java.lang { JInteger = Integer }
+
+String hex(Integer x) => JInteger.toHexString(x);
+
 Integer screenWidth = 64;
 Integer screenHeight = 32;
 Integer glyphWidth = 5;
