@@ -1,4 +1,4 @@
-import java.lang { BooleanArray, IntArray, JInteger = Integer }
+import java.lang { BooleanArray, IntArray }
 
 class Machine(IntArray rom, Peripherals peripherals) {
     IntArray mem = IntArray(#1000, 0);
@@ -22,6 +22,8 @@ class Machine(IntArray rom, Peripherals peripherals) {
 
     copy(0, *glyphs*.leftLogicalShift(4));
     copy(pc, *rom);
+
+    shared Boolean getKey(Integer x) => keys[x];
 
     shared Boolean getPixel(Integer x, Integer y) => grahpics[y * screenWidth + x];
 

@@ -1,7 +1,7 @@
-import java.awt { BorderLayout, Color, Dimension, Font, Graphics }
+import java.awt { BorderLayout, Color, Dimension, Graphics }
 import java.awt.event { ActionEvent, KeyAdapter, KeyEvent }
 import java.io { JFile = File }
-import java.lang { IntArray, JString = String }
+import java.lang { IntArray, JString = String, Thread }
 import java.util { Random }
 import java.util.concurrent { BlockingQueue, SynchronousQueue }
 import javax.swing {
@@ -15,11 +15,13 @@ import javax.swing {
     JPanel,
     SwingUtilities
 }
+import javax.swing.border { EmptyBorder }
 import ceylon.collection { HashMap, MutableMap }
 import ceylon.file { File, current, parsePath }
 
 class Display() {
     variable Machine? machine = null;
+    Integer delayMs = 10;
     Integer minScale = 8;
     variable Integer scale = 16;
     variable Color fgColor = Color.\iWHITE;
@@ -57,15 +59,6 @@ class Display() {
                 }
             }
         }
-        else {
-            g.font = Font(g.font.family, g.font.style, scale * 3 / 2);
-            value message = "Start by opening Machine > Load ROM...";
-            value fontBounds = g.fontMetrics.getStringBounds(message, g);
-            g.drawString(
-                message,
-                panel.width / 2 - fontBounds.centerX.integer,
-                panel.height / 2 - fontBounds.centerY.integer);
-        }
     }
 
     void doResize(JFrame frame, JPanel panel) {
@@ -85,7 +78,25 @@ class Display() {
         }
     }
 
-    void doLoadRom(JFrame frame, JPanel panel) {
+    void doRepaintLater(JPanel panel) => SwingUtilities.invokeLater(() => panel.repaint());
+
+    void doCycle(JPanel panel, JLabel label) {
+        if (exists m = machine) {
+            m.cycle();
+            value builder = StringBuilder();
+            builder.append(if (m.getKey(0)) then "0" else "_");
+
+            for (i in 1..#f) {
+                builder.append(" ");
+                builder.append(if (m.getKey(i)) then hex(i).uppercased else "_");
+            }
+
+            label.text = builder.string;
+            doRepaintLater(panel);
+        }
+    }
+
+    void doLoadRom(JFrame frame, JPanel panel, JLabel label) {
         value chooser = JFileChooser();
         chooser.currentDirectory = JFile(current.absolutePath.string);
         if (chooser.showOpenDialog(frame) == JFileChooser.approveOption) {
@@ -108,20 +119,17 @@ class Display() {
                         shared actual Integer rand() => r.nextInt(#100);
                         shared actual Integer waitForKeyPressed() => keyQueue.take();
                     });
+                    value thread = Thread(() {
+                        while (true) {
+                            doCycle(panel, label);
+                            Thread.sleep(delayMs);
+                        }
+                    });
+                    thread.start();
+                    doRepaintLater(panel);
                 }
             }
         }
-    }
-
-    void doRepaintLater(JPanel panel) {
-        SwingUtilities.invokeLater(() {
-            panel.repaint();
-        });
-    }
-
-    void doCycle(JPanel panel) {
-        machine?.cycle();
-        doRepaintLater(panel);
     }
 
     // TODO: per-rom key maps
@@ -143,6 +151,7 @@ class Display() {
     value panel = object extends JPanel() {
         shared actual void paint(Graphics g) => doPaint(this, g);
     };
+    panel.border = EmptyBorder(10, 10, 10, 10);
     value label = JLabel("Start by opening Machine > Load ROM...");
     value frame = JFrame("CHIP-8");
     frame.jMenuBar = menuBar;
@@ -152,17 +161,11 @@ class Display() {
     frame.resizable = false;
     doResize(frame, panel);
 
-    shared void setVisible(Boolean visible) {
-        frame.setVisible(visible);
-    }
+    shared void setVisible(Boolean visible) => frame.setVisible(visible);
 
-    loadMenuItem.addActionListener((ActionEvent e) {
-        doLoadRom(frame, panel);
-    });
+    loadMenuItem.addActionListener((ActionEvent e) => doLoadRom(frame, panel, label));
 
-    renderMenuItem.addActionListener((ActionEvent e) {
-        panel.repaint();
-    });
+    renderMenuItem.addActionListener((ActionEvent e) => panel.repaint());
 
     swapColorsMenuItem.addActionListener((ActionEvent e) {
         value temp = bgColor;
@@ -190,8 +193,7 @@ class Display() {
             }
             else if (e.controlDown) {
                 switch (e.keyCode)
-                case (KeyEvent.\iVK_SPACE) { doCycle(panel); }
-                else case (KeyEvent.\iVK_O) { doLoadRom(frame, panel); }
+                else case (KeyEvent.\iVK_O) { doLoadRom(frame, panel, label); }
                 else case (KeyEvent.\iVK_EQUALS) { doZoomIn(frame, panel); }
                 else case (KeyEvent.\iVK_MINUS) { doZoomOut(frame, panel); }
                 else {}
