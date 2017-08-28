@@ -84,11 +84,11 @@ class Display() {
         if (exists m = machine) {
             m.cycle();
             value builder = StringBuilder();
-            builder.append(if (m.getKey(0)) then "0" else "_");
+            builder.append(if (m.isKeyPressed(0)) then "0" else "_");
 
             for (i in 1..#f) {
                 builder.append(" ");
-                builder.append(if (m.getKey(i)) then hex(i).uppercased else "_");
+                builder.append(if (m.isKeyPressed(i)) then hex(i).uppercased else "_");
             }
 
             label.text = builder.string;
@@ -132,7 +132,6 @@ class Display() {
         }
     }
 
-    // TODO: per-rom key maps
     value loadMenuItem = JMenuItem("Load ROM...");
     value renderMenuItem = JMenuItem("Render Now");
     value swapColorsMenuItem = JMenuItem("Swap Colors");
