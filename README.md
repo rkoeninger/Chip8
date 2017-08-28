@@ -3,7 +3,22 @@
 
 # CHIP-8
 
-A CHIP-8 Emulator based on the follow resources:
+A CHIP-8 emulator for the Java Virtual Machine written in Ceylon.
 
-http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/
-https://en.wikipedia.org/wiki/CHIP-8
+### Key Mapping
+
+The CHIP-8 machine has a 16-key hexadecimal keyboard (`0` - `F`).
+
+These are mapped to the keys on a typical QWERTY keyboard:
+
+```
+1 2 3 4
+ Q W E R
+  A S D F
+   Z X C V
+```
+
+### References
+
+  * [Implementation guide by Laurence Muller](http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/)
+  * [Wikipedia](https://en.wikipedia.org/wiki/CHIP-8)
