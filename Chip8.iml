@@ -11,8 +11,8 @@
     </facet>
   </component>
   <component name="NewModuleRootManager">
-    <output url="C:\Users\rkoeninger\Workspace\Chip8\modules" />
-    <output-test url="C:\Users\rkoeninger\Workspace\Chip8\modules" />
+    <output url="file://$MODULE_DIR$/modules" />
+    <output-test url="file://$MODULE_DIR$/modules" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/source" isTestSource="false" />
