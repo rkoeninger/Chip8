@@ -176,12 +176,14 @@ class Display() {
     pickFgColorMenuItem.addActionListener((ActionEvent e) {
         if (exists c = JColorChooser.showDialog(frame, "Foreground Color", fgColor)) {
             fgColor = c;
+            doRepaintLater(panel);
         }
     });
 
     pickBgColorMenuItem.addActionListener((ActionEvent e) {
         if (exists c = JColorChooser.showDialog(frame, "Background Color", bgColor)) {
             bgColor = c;
+            doRepaintLater(panel);
         }
     });
 
